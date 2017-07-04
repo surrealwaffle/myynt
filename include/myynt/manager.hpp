@@ -12,17 +12,17 @@
 
 #include <tuple>        // std::tuple
 #include <utility>      // std::forward, std::index_sequence, std::make_index_sequence
-#include <type_traits>  // std::decay
+#include <type_traits>  // std::enable_if, 
 
 namespace myynt {
     
     /** \brief A module manager that emits down to submodules. */
     template< class... Modules >
     class manager;
-    
-    template< class... Modules >
+
+	template< class... Modules >
     class manager {
-    public:
+    public:	
         manager()               = default;
         manager(manager const&) = default;
         manager(manager&&)      = default;
@@ -30,8 +30,14 @@ namespace myynt {
         manager& operator=(manager const&)  = default;
         manager& operator=(manager&&)       = default;
         
-        template< class... U >
-        constexpr manager(U&&... modules) : modules_(std::forward<U>(ms)...) { }
+		template<
+			class... UTypes, 
+			class = typename std::enable_if<
+				sizeof...(UTypes) >= 1u &&
+				sizeof...(Modules) == sizeof...(UTypes) &&
+				(std::is_constructible<Modules, UTypes&&>::value && ...)	
+			>::type
+		> explicit constexpr manager(UTypes&&... utypes) : modules_(std::forward<UTypes>(utypes)...) { }
         
         /** \brief Sends \a message down to the submodules under the manager, by lvalue reference.
          *
@@ -67,20 +73,20 @@ namespace myynt {
          */
         template< class Message, std::size_t... I >
         constexpr Message
-        myynt_Process(Message&& message, [[maybe_unused]] std::index_sequence<I...>);
-        
+        myynt_ProcessModulesByIndex(Message&& message, std::index_sequence<I...>);
         
         std::tuple<Modules...> modules_;
     };
     
     #if __cpp_deduction_guides >= 201606
     template< class... Modules >
-    manager(Modules&&...) -> manager<typename std::decay<Modules>::type...>;
+    explicit manager(Modules...) -> manager<Modules...>;
     #endif
     
+	template< class... Modules >
     template< class Message, std::size_t... I >
     constexpr Message
-    myynt_Process(Message&& message, [[maybe_unused]] std::index_sequence<I...>) {
+    manager<Modules...>::myynt_ProcessModulesByIndex(Message&& message, std::index_sequence<I...>) {
         (..., std::get<I>(modules_).myynt_Process(message));
         return std::forward<Message>(message);
     }
