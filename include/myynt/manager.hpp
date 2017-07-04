@@ -30,14 +30,21 @@ namespace myynt {
         manager& operator=(manager const&)  = default;
         manager& operator=(manager&&)       = default;
         
+        /** \brief Constructs the manager's modules from \a modules. 
+         *
+         * This constructor is enabled if and only if all of the following are true:
+         *  * `sizeof...(UTypes) >= 1`
+         *  * `sizeof...(UTypes) == sizeof...(Modules)`
+         *  * `std::is_constructible<Modules, U&&>` is \c true for each type `U` in the pack `UTypes`
+         */
 		template<
 			class... UTypes, 
 			class = typename std::enable_if<
-				sizeof...(UTypes) >= 1u &&
-				sizeof...(Modules) == sizeof...(UTypes) &&
+				sizeof...(UTypes) >= 1 &&
+				sizeof...(UTypes) == sizeof...(Modules) &&
 				(std::is_constructible<Modules, UTypes&&>::value && ...)	
 			>::type
-		> explicit constexpr manager(UTypes&&... utypes) : modules_(std::forward<UTypes>(utypes)...) { }
+		> explicit constexpr manager(UTypes&&... modules) : modules_(std::forward<UTypes>(utypes)...) { }
         
         /** \brief Sends \a message down to the submodules under the manager, by lvalue reference.
          *
@@ -75,6 +82,7 @@ namespace myynt {
         constexpr Message
         myynt_ProcessModulesByIndex(Message&& message, std::index_sequence<I...>);
         
+        /** \brief The modules themselves. */
         std::tuple<Modules...> modules_;
     };
     
