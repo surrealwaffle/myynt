@@ -17,8 +17,8 @@ When a user or a module hand a message down to submodules, `myynt_Process` must 
 Module that aggregate submodules must define `myynt_Process` to send the message down to its submodules.
 There are some nuances with passing the message further up the module hierarchy, so the current list of tasks looks like this:
 
-- [ ] Create class `manager`, for which `myynt_Emit` calls `myynt_Process`, which distributes a message down to all its submodules as described above
-- [ ] Change `manager` to work for multiple submodules of the same type
+- [x] Create class `manager`, for which `myynt_Emit` calls `myynt_Process`, which distributes a message down to all its submodules as described above
+- [x] Change `manager` to work for multiple submodules of the same type
 - [ ] Change `manager` to only call `myynt_Process` on messages for submodules that *handle* those messages (check if an overload exists)
 
 # Emitters
