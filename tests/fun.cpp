@@ -24,7 +24,7 @@ int main() {
 	static_assert(is_message_processable<int&, IncrementModule>());
 	static_assert(!is_message_processable<void*&, IncrementModule>());
 	
-	manager m{IncrementModule{}, PrintModule{}};
-	m.myynt_Process(1336);
+	manager m{IncrementModule{}, PrintModule{}, IncrementModule{}, PrintModule{}};
+	m.myynt_Process(1335);
 	return 0;
 }
