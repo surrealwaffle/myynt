@@ -12,12 +12,15 @@
 
 namespace myynt::metaprogramming {
 	
+	/** \brief Used in conjunction with \ref myynt::metaprogramming::convey "convey" to provide a denote the second layer of overloads to consider. */
+	struct fallback_overload { };
+	
 	/** \brief A type used to force certain overloads to be inspected first.
 	 *
 	 * See \ref traits.hpp for some examples.
 	 */
 	template< class... >
-	struct convey { };
+	struct convey : fallback_overload { };
 	
 }
 

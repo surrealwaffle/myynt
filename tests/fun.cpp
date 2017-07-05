@@ -22,6 +22,7 @@ int main() {
 	using namespace myynt;
 	
 	static_assert(is_message_processable<int&, IncrementModule>());
+	static_assert(!is_message_processable<void*&, IncrementModule>());
 	
 	manager m{IncrementModule{}, PrintModule{}};
 	m.myynt_Process(1336);
