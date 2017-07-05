@@ -44,7 +44,7 @@ namespace myynt {
 				sizeof...(UTypes) == sizeof...(Modules) &&
 				(std::is_constructible<Modules, UTypes&&>::value && ...)	
 			>::type
-		> explicit constexpr manager(UTypes&&... modules) : modules_(std::forward<UTypes>(utypes)...) { }
+		> explicit constexpr manager(UTypes&&... modules) : modules_(std::forward<UTypes>(modules)...) { }
         
         /** \brief Sends \a message down to the submodules under the manager, by lvalue reference.
          *
