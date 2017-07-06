@@ -1,7 +1,7 @@
 # Summary
 The goal of this project is to provide a means of intercommunication between modules of code through messages.
 
-- [ ] Modules
+- [x] Modules
 - [ ] Emitters
 - [ ] Tags
 
