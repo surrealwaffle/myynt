@@ -12,7 +12,13 @@
 
 #include <tuple>        // std::tuple
 #include <utility>      // std::forward, std::index_sequence, std::make_index_sequence
-#include <type_traits>  // std::enable_if, 
+#include <type_traits>  // std::enable_if, std::is_constructible
+
+#include <yymp/typelist_fwd.hpp>    // yymp::typelist
+#include <yymp/filter.hpp>          // yymp::indices_where
+#include <yymp/bind.hpp>            // yymp::bind
+
+#include <myynt/traits.hpp> // myynt::is_message_processable
 
 namespace myynt {
     
@@ -20,9 +26,16 @@ namespace myynt {
     template< class... Modules >
     class manager;
 
-	template< class... Modules >
+    template< class... Modules >
     class manager {
-    public:	
+        using module_types = ::yymp::typelist<Modules...>;
+        
+        template< class Message >
+        using get_processable_indices = typename ::yymp::indices_where<
+            ::yymp::bind<is_message_processable<Message, ::yymp::var>>::template generic,
+            module_types
+        >::type;
+    public:    
         manager()               = default;
         manager(manager const&) = default;
         manager(manager&&)      = default;
@@ -37,14 +50,14 @@ namespace myynt {
          *  * `sizeof...(UTypes) == sizeof...(Modules)`
          *  * `std::is_constructible<Modules, U&&>` is \c true for each type `U` in the pack `UTypes`
          */
-		template<
-			class... UTypes, 
-			class = typename std::enable_if<
-				sizeof...(UTypes) >= 1 &&
-				sizeof...(UTypes) == sizeof...(Modules) &&
-				(std::is_constructible<Modules, UTypes&&>::value && ...)	
-			>::type
-		> explicit constexpr manager(UTypes&&... modules) : modules_(std::forward<UTypes>(modules)...) { }
+        template<
+            class... UTypes, 
+            class = typename std::enable_if<
+                sizeof...(UTypes) >= 1 &&
+                sizeof...(UTypes) == sizeof...(Modules) &&
+                (std::is_constructible<Modules, UTypes&&>::value && ...)    
+            >::type
+        > explicit constexpr manager(UTypes&&... modules) : modules_(std::forward<UTypes>(modules)...) { }
         
         /** \brief Sends \a message down to the submodules under the manager, by lvalue reference.
          *
@@ -55,8 +68,8 @@ namespace myynt {
          */
         template< class Message >
         constexpr Message
-        myynt_Process(Message&& message) 
-        { return this->myynt_ProcessModulesByIndex(std::forward<Message>(message), std::make_index_sequence<sizeof...(Modules)>()); }
+        myynt_Process(Message&& message)
+        { return myynt_SendToModules(std::forward<Message>(message), get_processable_indices<Message&>()); }
         
         /** \brief Sends \a message down to the submodules under the manager, by lvalue reference.
          *
@@ -67,8 +80,8 @@ namespace myynt {
          */
         template< class Message >
         constexpr Message
-        myynt_Emit(Message&& message) 
-        { return this->myynt_Process(std::forward<Message>(message)); }
+        myynt_Emit(Message&& message)
+        { return myynt_Process(std::forward<Message>(message)); }
         
     private:
         /** \brief Sends \a message down to the submodules selected by the supplied index sequence under the manager, by lvalue reference.
@@ -80,7 +93,7 @@ namespace myynt {
          */
         template< class Message, std::size_t... I >
         constexpr Message
-        myynt_ProcessModulesByIndex(Message&& message, std::index_sequence<I...>);
+        myynt_SendToModules(Message&& message, std::index_sequence<I...>);
         
         /** \brief The modules themselves. */
         std::tuple<Modules...> modules_;
@@ -90,11 +103,11 @@ namespace myynt {
     template< class... Modules >
     explicit manager(Modules...) -> manager<Modules...>;
     #endif
-    
-	template< class... Modules >
+        
+    template< class... Modules >
     template< class Message, std::size_t... I >
     constexpr Message
-    manager<Modules...>::myynt_ProcessModulesByIndex(Message&& message, std::index_sequence<I...>) {
+    manager<Modules...>::myynt_SendToModules(Message&& message, std::index_sequence<I...>) {
         (..., std::get<I>(modules_).myynt_Process(message));
         return std::forward<Message>(message);
     }

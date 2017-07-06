@@ -19,7 +19,7 @@ There are some nuances with passing the message further up the module hierarchy,
 
 - [x] Create class `manager`, for which `myynt_Emit` calls `myynt_Process`, which distributes a message down to all its submodules as described above
 - [x] Change `manager` to work for multiple submodules of the same type
-- [ ] Change `manager` to only call `myynt_Process` on messages for submodules that *handle* those messages (check if an overload exists)
+- [x] Change `manager` to only call `myynt_Process` on messages for submodules that *handle* those messages (check if an overload exists)
 
 # Emitters
 Emitters are mix-in classes that provide to user-created modules the `myynt_Emit` method.
