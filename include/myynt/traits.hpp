@@ -35,7 +35,7 @@ namespace myynt {
 			-> std::false_type;
 	public:
 		/** \brief \c true if and only if a \a Module can process values of type \a Message. */
-		static constexpr bool value = decltype(detect(metaprogramming::convey<Message, Module>()))::value;
+		static constexpr bool value = decltype(detect(metaprogramming::convey_v<Message, Module>))::value;
 		
 		constexpr operator bool() const noexcept { return value; }
 		constexpr bool operator()() const noexcept { return value; }

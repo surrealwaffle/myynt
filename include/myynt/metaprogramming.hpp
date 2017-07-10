@@ -21,6 +21,10 @@ namespace myynt::metaprogramming {
 	 */
 	template< class... >
 	struct convey : fallback_overload { };
+    
+    /** \brief Convenient construction of \ref convey types. */
+    template< class... Types >
+    constexpr convey<Types...> convey_v;
 	
 }
 
