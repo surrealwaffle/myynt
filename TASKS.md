@@ -22,15 +22,16 @@ There are some nuances with passing the message further up the module hierarchy,
 - [x] Change `manager` to only call `myynt_Process` on messages for submodules that *handle* those messages (check if an overload exists)
 
 # Emitters
-Emitters are mix-in classes that provide to user-created modules the `myynt_Emit` method.
-There are two types of emitters, both class templates:
-- `callback_emitter`s store a pointer to the parent manager as well as function pointers to their `myynt_Emit` methods for specific message types
-- `emitter`, whose template parameter is the manager type and stores a pointer to the manager
+Emitters are mixins that provide to user-created modules the `myynt_Emit` method.
+There are two emitter types:
+- 'emitter', which emits messages by a typed pointer to the manager above it (templated on the manager type)
+- 'callback_emitter', which emits messages through callback functions (templated on the message types)
+
+To avoid awful headaches, it is assumed that a module does not inherit multiple times from emitters.
 
 - [ ] Implement `emitter`
 - [ ] Implement `callback_emitter`
-- [ ] Change `manager` to check for emitter bases and directly register with the emitter (avoid requiring the user to reintroduce methods with a `using` declaration)
-- [ ] \(Awful Headache) Design the emitters to register with the manager, even if a submodule inherits from an emitter multiple times
+- [ ] Change `manager` to register directly with the emitter base
 
 # Tags
 When a parent module passes a message down to its submodules, it does so in the order the submodules are supplied. However, it would be useful to permute this order. 
