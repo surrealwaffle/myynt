@@ -15,6 +15,9 @@
 
 namespace myynt {
 	
+    /** \brief Indicates that an emitter is a callback emitter. */
+    struct callback;
+    
 	/** \brief Inherits from `bool` constants to indicate if a \a Module member function `myynt_Process` exists that takes values of type `Message&&`. */
 	template< class Message, class Module, class = std::void_t<> >
 	struct is_message_processable;
