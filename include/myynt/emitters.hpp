@@ -10,10 +10,15 @@
 #ifndef MYYNT__EMITTERS_HPP
 #define MYYNT__EMITTERS_HPP
 
-#include <yymp/typelist_fwd.hpp>
-#include <yymp/filter.hpp>
+#include <type_traits>  // std::enable_if
+#include <memory>       // std::addressof
 
-#include <myynt/traits.hpp>
+#include <yymp/typelist_fwd.hpp>    // yymp::typelist
+#include <yymp/filter.hpp>          // yymp::filter_duplicates
+#include <yymp/expand.hpp>          // yymp::expand
+#include <yymp/traits.hpp>          // yymp::any_of
+
+#include <myynt/traits.hpp> // myynt::callback
 
 namespace myynt {
     
@@ -35,13 +40,40 @@ namespace myynt {
             return manager->myynt_Emit(std::forward<Message>(message));
         }
         
+    protected:
+        friend constexpr void myynt_RegisterManagerWithEmitter(emitter& e, Manager& manager) noexcept {
+            e->manager = std::addressof(manager);
+        }
+        
     private:
         Manager *manager;
     };
         
     template< class... Messages >
     class emitter<callback, Messages...> {
+        using messages = typename ::yymp::filter_duplicates< ::yymp::typelist<Messages...> >::type;
+        using callback_impl = typename ::yymp::expand< detail::callback_emitter, messages >::type;
+    public:
+        emitter() = default;
+        emitter(emitter const&) = default;
+        emitter(emitter&&) = default;
+        emitter& operator=(emitter const&) = default;
+        emitter& operator=(emitter&&) = default;
         
+        template< class Message >
+        auto myynt_Emit(Message&& message)
+            -> typename std::enable_if<::yymp::any_of<Message, messages>::value, Message>::type {
+            return callbacks.myynt_Emit(std::forward<Message>(message));
+        }
+        
+    protected:
+        template< class Manager >
+        friend void myynt_RegisterManagerWithEmitter(emitter& e, Manager& manager) noexcept {
+            e.callbacks.myynt_RegisterManager(manager);
+        }
+        
+    private:
+        callback_impl callbacks;
     };
 }
 
