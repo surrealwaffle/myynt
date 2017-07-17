@@ -40,13 +40,12 @@ namespace myynt {
             return manager->myynt_Emit(std::forward<Message>(message));
         }
         
-    protected:
+    private:
+        Manager *manager;
+        
         friend constexpr void myynt_RegisterManagerWithEmitter(emitter& e, Manager& manager) noexcept {
             e->manager = std::addressof(manager);
         }
-        
-    private:
-        Manager *manager;
     };
         
     template< class... Messages >
@@ -66,14 +65,13 @@ namespace myynt {
             return callbacks.myynt_Emit(std::forward<Message>(message));
         }
         
-    protected:
+    private:
+        callback_impl callbacks;
+        
         template< class Manager >
         friend void myynt_RegisterManagerWithEmitter(emitter& e, Manager& manager) noexcept {
             e.callbacks.myynt_RegisterManager(manager);
         }
-        
-    private:
-        callback_impl callbacks;
     };
 }
 
