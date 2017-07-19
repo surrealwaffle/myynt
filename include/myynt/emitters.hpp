@@ -20,6 +20,8 @@
 
 #include <myynt/traits.hpp> // myynt::callback
 
+#include <myynt/detail/callback_emitter.hpp> // myynt::callback_emitter
+
 namespace myynt {
     
     template< class... Ts >
