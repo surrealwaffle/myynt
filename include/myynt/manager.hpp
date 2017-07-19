@@ -74,7 +74,7 @@ namespace myynt {
         /** \brief Sends \a message down to the submodules under the manager, by lvalue reference.
          *
          * If this function is passed an lvalue, then this function returns an lvalue reference.
-         * Otherwise, this function this function attempts to return \a message by move.
+         * Otherwise, this function attempts to return \a message by move.
          *
          * \return `std::forward<Message>(message)`
          */
