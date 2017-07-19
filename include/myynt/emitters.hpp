@@ -24,6 +24,11 @@
 
 namespace myynt {
     
+    template< class Module, class Manager >
+    constexpr void myynt_RegisterManagerWithEmitter(Module&, Manager&) noexcept {
+        // DO NOTHING
+    }
+    
     template< class... Ts >
     class emitter;
     
