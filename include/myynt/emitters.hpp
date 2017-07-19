@@ -29,6 +29,10 @@ namespace myynt {
      * Both specializations provide public member function (possibly template) `myynt_Emit`.
      * Calls made to the function (or instances of the template) will pass a message up to the emitter's registered manager.
      *
+     * Emitters are default constructed in an unregistered state and registered with the manager after the construction of its submodules.
+     * Because `myynt_Emit` expects that the manager is registered, emitting a message during construction of a module using an emitter
+     * is not recommended.
+     *
      * These calls behave as if calling `myynt_Emit` on the \ref myynt::manager "manager", possibly with some overhead.
      */
     template< class... Ts >

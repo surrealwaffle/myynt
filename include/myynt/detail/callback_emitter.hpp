@@ -16,6 +16,8 @@
 namespace myynt::detail {
     
     struct callback_emitter_manager_pointer {
+        constexpr callback_emitter_manager_pointer noexcept : manager(nullptr) { }
+        
         void* manager;
         
         template< class Manager >
@@ -35,6 +37,10 @@ namespace myynt::detail {
     
     template< class Message >
     struct callback_emitter_impl {
+        constexpr callback_emitter_impl() noexcept : emit_function(nullptr) {
+            // DO NOTHING
+        }
+    
         using function_type = Message& (*)(callback_emitter_manager_pointer const&, Message&);
         function_type emit_function;
         
