@@ -24,13 +24,11 @@
 
 namespace myynt {
     
-    template< class Module, class Manager >
-    constexpr void myynt_RegisterManagerWithEmitter(Module&, Manager&) noexcept {
-        // DO NOTHING
-    }
-    
     template< class... Ts >
     class emitter;
+    
+    template< class Manager, class Module >
+    constexpr void myynt_RegisterManagerWithEmitter(Manager&, Module&) noexcept;
     
     template< class Manager >
     class emitter<Manager> {
@@ -50,7 +48,7 @@ namespace myynt {
     private:
         Manager *manager;
         
-        friend constexpr void myynt_RegisterManagerWithEmitter(emitter& e, Manager& manager) noexcept {
+        friend constexpr void myynt_RegisterManagerWithEmitter(Manager& manager, emitter& e) noexcept {
             e->manager = std::addressof(manager);
         }
     };
@@ -76,10 +74,15 @@ namespace myynt {
         callback_impl callbacks;
         
         template< class Manager >
-        friend void myynt_RegisterManagerWithEmitter(emitter& e, Manager& manager) noexcept {
+        friend void myynt_RegisterManagerWithEmitter(Manager& manager, emitter& e) noexcept {
             e.callbacks.myynt_RegisterManager(manager);
         }
     };
+    
+    template< class Manager, class Module >
+    constexpr void myynt_RegisterManagerWithEmitter(Manager&, Module&) noexcept {
+        // DO NOTHING
+    }
 }
 
 #endif // MYYNT__EMITTERS_HPP
