@@ -7,8 +7,8 @@
  * \brief Properties and relations between modules and messages.
  */
  
-#ifndef YYMP__TRAITS_HPP
-#define YYMP__TRAITS_HPP
+#ifndef MYYNT__TRAITS_HPP
+#define MYYNT__TRAITS_HPP
 
 #include <utility>		// std::declval
 #include <type_traits> 	// std::void_t, std::false_type, std::true_type
@@ -33,4 +33,4 @@ namespace myynt {
     > : std::true_type { };
 }
 
-#endif // YYMP__TRAITS_HPP
+#endif // MYYNT__TRAITS_HPP

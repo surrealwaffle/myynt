@@ -118,7 +118,7 @@ namespace myynt {
         template< class Message >
         auto myynt_Emit(Message&& message)
             -> typename std::enable_if<
-                yymp_any_of<typename std::remove_reference<Message>::type, messages>::value
+                ::yymp::any_of< typename std::remove_reference<Message>::type, messages >::value,
                 Message
             >::type {
             return callbacks.myynt_Emit(std::forward<Message>(message));
@@ -133,6 +133,7 @@ namespace myynt {
         }
     };
     
+    // default fallback if Module has no emitters
     template< class Manager, class Module >
     constexpr void myynt_RegisterManagerWithEmitter(Manager&, Module&) noexcept {
         // DO NOTHING

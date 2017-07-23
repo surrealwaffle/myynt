@@ -7,16 +7,22 @@
  * \brief Implementation for callback emitter.
  */
 
-#include <utility>  // std::declval, std::forward
-#include <memory>   // std::addressof
-
 #ifndef MYYNT__DETAIL__CALLBACK_EMITTER_HPP
 #define MYYNT__DETAIL__CALLBACK_EMITTER_HPP
+
+#include <utility>  // std::declval, std::forward
+#include <memory>   // std::addressof
 
 namespace myynt::detail {
     
     struct callback_emitter_manager_pointer {
-        constexpr callback_emitter_manager_pointer noexcept : manager(nullptr) { }
+        constexpr callback_emitter_manager_pointer() noexcept : manager(nullptr) { }
+        
+        callback_emitter_manager_pointer(callback_emitter_manager_pointer const&) = default;
+        callback_emitter_manager_pointer(callback_emitter_manager_pointer&&) = default;
+        
+        callback_emitter_manager_pointer& operator=(callback_emitter_manager_pointer const&) = default;
+        callback_emitter_manager_pointer& operator=(callback_emitter_manager_pointer&&) = default;
         
         void* manager;
         
@@ -26,7 +32,7 @@ namespace myynt::detail {
             return reinterpret_cast<Manager*>(__builtin_assume_aligned(manager, alignof(Manager)));
             #else
             #error "add compiler case to reinterpret void* as Manager*"
-            #end
+            #endif
         }
         
         template< class Manager >
@@ -40,13 +46,19 @@ namespace myynt::detail {
         constexpr callback_emitter_impl() noexcept : emit_function(nullptr) {
             // DO NOTHING
         }
+        
+        callback_emitter_impl(callback_emitter_impl const&) = default;
+        callback_emitter_impl(callback_emitter_impl&&) = default;
+        
+        callback_emitter_impl& operator=(callback_emitter_impl const&) = default;
+        callback_emitter_impl& operator=(callback_emitter_impl&&) = default;
     
         using function_type = Message& (*)(callback_emitter_manager_pointer const&, Message&);
         function_type emit_function;
         
         template< class Manager >
         static Message& callback(callback_emitter_manager_pointer const& manager_pointer, Message& message) 
-            noexcept(noexcept(std::declval<Manager>().myynt_Emit(message)))) {
+            noexcept(noexcept(std::declval<Manager>().myynt_Emit(message))) {
             return manager_pointer.template pointer_as<Manager>()->myynt_Emit(message);
         }
         
@@ -66,7 +78,7 @@ namespace myynt::detail {
     
     template< class... Messages >
     struct callback_emitter : callback_emitter_manager_pointer, callback_emitter_impl<Messages>... {
-        using callback_emitter_impl<Messages>::emit_to_manager;
+        using callback_emitter_impl<Messages>::emit_to_manager...;
         
         template< class Message >
         auto myynt_Emit(Message&& message) const
