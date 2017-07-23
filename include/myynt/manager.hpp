@@ -52,7 +52,8 @@ namespace myynt {
          * This constructor is enabled if and only if all \a Modules are default constructible.
          */
         template<
-            class = typename std::enable_if< std::is_default_constructible<decltype(modules_)>::value >::type
+            bool B = std::is_default_constructible<decltype(modules_)>::value,
+            class = typename std::enable_if<B>::type
         > explicit constexpr manager() noexcept(std::is_nothrow_default_constructible<decltype(modules_)>::value)
             : modules_() {
             myynt_RegisterAsManager();
