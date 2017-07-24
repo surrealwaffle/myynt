@@ -2,7 +2,7 @@
 The goal of this project is to provide a means of intercommunication between modules of code through messages.
 
 - [x] Modules
-- [ ] Emitters
+- [x] Emitters
 - [ ] Tags
 
 # Modules
@@ -29,9 +29,9 @@ There are two emitter types:
 
 To avoid awful headaches, it is assumed that a module does not inherit multiple times from emitters.
 
-- [ ] Implement `emitter`
-- [ ] Implement `callback_emitter`
-- [ ] Change `manager` to register directly with the emitter base
+- [x] Implement `emitter`
+- [x] Implement `callback_emitter` (DONE, uses `emitter<callback, MessageTypes...>`)
+- [x] Change `manager` to register directly with the emitter base
 
 # Tags
 When a parent module passes a message down to its submodules, it does so in the order the submodules are supplied. However, it would be useful to permute this order. 
