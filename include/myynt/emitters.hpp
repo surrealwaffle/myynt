@@ -15,7 +15,7 @@
 
 #include <yymp/typelist_fwd.hpp>    // yymp::typelist
 #include <yymp/filter.hpp>          // yymp::filter_duplicates
-#include <yymp/expand.hpp>          // yymp::expand
+#include <yymp/expand.hpp>          // yymp::expand_into
 #include <yymp/traits.hpp>          // yymp::any_of
 
 #include <myynt/traits.hpp> // myynt::callback
@@ -71,12 +71,12 @@ namespace myynt {
             return manager->myynt_Emit(std::forward<Message>(message));
         }
         
+        void myynt_RegisterManager(Manager& m) noexcept {
+            manager = std::addressof(m);
+        }
+        
     private:
         Manager *manager; /**< The registered manager. */
-        
-        friend constexpr void myynt_RegisterManagerWithEmitter(Manager& manager, emitter& e) noexcept {
-            e->manager = std::addressof(manager);
-        }
     };
     
     /** \brief An emitter that stores and uses callbacks in order to emit messages up to the registered manager.
@@ -93,7 +93,7 @@ namespace myynt {
         
         
         using messages = typename yymp::filter_duplicates< yymp::typelist<Messages...> >::type;
-        using callback_impl = typename yymp::expand< detail::callback_emitter, messages >::type;
+        using callback_impl = typename yymp::expand_into< detail::callback_emitter, messages >::type;
         
     public:
         emitter() = default;
@@ -124,20 +124,25 @@ namespace myynt {
             return callbacks.myynt_Emit(std::forward<Message>(message));
         }
         
+        template< class Manager >
+        void myynt_RegisterManager(Manager& m) noexcept {
+            callbacks.myynt_RegisterManager(m);
+        }
+        
     private:
         callback_impl callbacks; /**< Storage for the callbacks. */
-        
-        template< class Manager >
-        friend void myynt_RegisterManagerWithEmitter(Manager& manager, emitter& e) noexcept {
-            e.callbacks.myynt_RegisterManager(manager);
-        }
     };
     
-    // default fallback if Module has no emitters
+    /// \todo hide manager registration from users     
     template< class Manager, class Module >
-    constexpr void myynt_RegisterManagerWithEmitter(Manager&, Module&) noexcept {
-        // DO NOTHING
+    constexpr void myynt_RegisterManagerWithEmitter(Manager& manager, Module& module) noexcept {
+        if constexpr (is_module_registerable<Manager&, Module&>()) {
+            module.myynt_RegisterManager(manager);
+        } else {
+            // DO NOTHING
+        }
     }
+    
 }
 
 #endif // MYYNT__EMITTERS_HPP

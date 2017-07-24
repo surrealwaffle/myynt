@@ -27,7 +27,7 @@ namespace myynt::detail {
         void* manager;
         
         template< class Manager >
-        Manager& pointer_as() const noexcept {
+        Manager* pointer_as() const noexcept {
             #if defined(__GNUC__)
             return reinterpret_cast<Manager*>(__builtin_assume_aligned(manager, alignof(Manager)));
             #else
@@ -71,7 +71,7 @@ namespace myynt::detail {
         }
         
         template< class Manager >
-        void myynt_RegisterManager(Manager& manager) noexcept {
+        void myynt_RegisterManager(Manager&) noexcept {
             emit_function = callback_emitter_impl::template callback<Manager>;
         }
     };
@@ -82,8 +82,8 @@ namespace myynt::detail {
         
         template< class Message >
         auto myynt_Emit(Message&& message) const
-            -> decltype(emit_to_manager(*this, message)) {
-            return emit_to_manager(*this, std::forward<Message>());
+            -> decltype(emit_to_manager(*this, std::forward<Message>(message))) {
+            return emit_to_manager(*this, std::forward<Message>(message));
         }
         
         template< class Manager >

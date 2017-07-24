@@ -5,12 +5,14 @@
 #include <myynt/traits.hpp>
 
 struct custom_message {
-    char msg[256];
+    char const* msg;
 };
 
-struct IncrementModule {
+struct IncrementModule : myynt::emitter<myynt::callback, custom_message> {
 	void myynt_Process(int& i) {
 		++i;
+        
+        myynt_Emit(custom_message{"foo"});
 	}
 };
 
@@ -38,6 +40,7 @@ int main() {
     static_assert(!is_message_processable<int&, NoProcessModule>());
 	
 	manager m{IncrementModule{}, PrintModule{}, NoProcessModule{5}, IncrementModule{}, PrintModule{}};
+    //manager m{IncrementModule{}};
 	m.myynt_Process(1335);
 	return 0;
 }

@@ -22,6 +22,10 @@ namespace myynt {
 	template< class Message, class Module, class = std::void_t<> >
 	struct is_message_processable;
     
+    /** \brief Inherits from `bool` constants to indicate if a \a Module member function `myynt_RegisterManager` exists that takes values of type `Manager&&`. */
+    template< class Manager, class Module, class = std::void_t<> >
+    struct is_module_registerable;
+    
     template< class Message, class Module, class >
     struct is_message_processable : std::false_type { };
     
@@ -31,6 +35,17 @@ namespace myynt {
         Module, 
         std::void_t<decltype(std::declval<Module>().myynt_Process(std::declval<Message>()))>
     > : std::true_type { };
+    
+    template< class Manager, class Module, class >
+    struct is_module_registerable : std::false_type { };
+    
+    template< class Manager, class Module >
+    struct is_module_registerable<
+        Manager,
+        Module,
+        std::void_t<decltype(std::declval<Module>().myynt_RegisterManager(std::declval<Manager>()))>
+    > : std::true_type { };
+    
 }
 
 #endif // MYYNT__TRAITS_HPP
