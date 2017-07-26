@@ -91,8 +91,7 @@ namespace myynt {
          */
         template< class Message >
         constexpr Message
-        myynt_Process(Message&& message)
-        { return myynt_SendToModules(std::forward<Message>(message), get_processable_indices<Message&>()); }
+        myynt_Process(Message&& message);
         
         /** \brief Sends \a message down to the submodules under the manager, by lvalue reference.
          *
@@ -135,6 +134,13 @@ namespace myynt {
     template< class... Modules >
     explicit manager(Modules...) -> manager<Modules...>;
     #endif
+    
+    template< class... Modules >
+    template< class Message >
+    constexpr Message
+    manager<Modules...>::myynt_Process(Message&& message) {
+        return myynt_SendToModules(std::forward<Message>(message), get_processable_indices<Message&>());
+    }
         
     template< class... Modules >
     template< class Message, std::size_t... I >
