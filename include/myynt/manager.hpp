@@ -15,8 +15,9 @@
 #include <type_traits>  // std::enable_if, std::is_constructible, std::is_
 
 #include <yymp/typelist_fwd.hpp>    // yymp::typelist, yymp::size
-#include <yymp/filter.hpp>          // yymp::indices_where
+#include <yymp/filter.hpp>          // yymp::filter_duplicates, yymp::indices_where
 #include <yymp/bind.hpp>            // yymp::bind
+#include <yymp/expand.hpp>          // yymp::expand_into
 
 #include <myynt/traits.hpp>     // myynt::is_message_processable
 #include <myynt/emitters.hpp>   // myynt::myynt_RegisterManagerWithEmitter
@@ -29,16 +30,20 @@ namespace myynt {
 
     template< class... Modules >
     class manager {
-        using module_types = ::yymp::typelist<Modules...>;
+        using module_types = yymp::typelist<Modules...>;
+        
+        using distinct_module_types = typename yymp::filter_duplicates<module_types>::type;
         
         template< class Message >
-        using get_processable_indices = typename ::yymp::indices_where<
-            ::yymp::bind<is_message_processable<Message, ::yymp::var>>::template generic,
+        using get_processable_indices = typename yymp::indices_where<
+            yymp::bind<is_message_processable<Message, yymp::var>>::template generic,
             module_types
         >::type;
         
+        using modules_container_type = typename yymp::expand_into<std::tuple, module_types>::type;
+        
         /** \brief The modules themselves. */
-        std::tuple<Modules...> modules_;
+        modules_container_type modules_;
     public:
         manager()               = delete;
         manager(manager const&) = delete; ///< \todo make optionally available
