@@ -49,9 +49,9 @@ namespace myynt::tags {
     template< class S, class T, class Category >
     struct belongs_to_category
         : yymp::is_not_empty<
-            typename yymp::intersect<
-                typename yymp::tags_of<S>::type,
-                typename yymp::tags_of_category<T, Category>::type
+            typename yymp::intersection<
+                typename tags_of<S>::type,
+                typename tags_of_category<T, Category>::type
             >::type
         > { };
 }
