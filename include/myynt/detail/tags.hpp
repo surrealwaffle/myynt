@@ -10,7 +10,7 @@
 #ifndef MYYNT__TAGS_HPP
 #define MYYNT__TAGS_HPP
 
-#include <yymp/typelist_fwd.hpp>    // yymp::retain_as_typelist, yymp::is_not_empty
+#include <yymp/typelist_fwd.hpp>    // yymp::typelist, yymp::retain_as_typelist, yymp::is_not_empty
 #include <yymp/setops.hpp>          // yymp::intersect
 
 #include <type_traits>
@@ -25,7 +25,7 @@ namespace myynt::tags {
     
     template< class T, class Category, class = std::void_t<> >
     struct tags_of_category {
-        using type = typename yymp::retain_as_typelist<typename T::myynt_tags>::type;
+        using type = yymp::typelist<>;
     };
     
     template< class T >
