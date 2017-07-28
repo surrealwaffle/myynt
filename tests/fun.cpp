@@ -4,11 +4,17 @@
 #include <myynt/manager.hpp>
 #include <myynt/traits.hpp>
 
+struct PrintModule;
+struct IncrementModule;
+
 struct custom_message {
+    using myynt_first = PrintModule;
+    using myynt_last = IncrementModule;
+    
     char const* msg;
 };
 
-struct IncrementModule : myynt::emitter<myynt::callback, custom_message> {
+struct IncrementModule : myynt::emitter<myynt::callback, custom_message> {    
 	void myynt_Process(int& i) {
 		++i;
         
@@ -32,6 +38,8 @@ struct NoProcessModule {
     NoProcessModule(int) { }
 };
 
+
+
 int main() {
 	using namespace myynt;
 	
@@ -41,6 +49,9 @@ int main() {
 	
 	manager m{IncrementModule{}, PrintModule{}, NoProcessModule{5}, IncrementModule{}, PrintModule{}};
     //manager m{IncrementModule{}};
-	m.myynt_Process(1335);
+	m.myynt_Process(custom_message{"foo"});
+    
+    static_assert(std::is_same<typename myynt::tags::tags_of<IncrementModule>::type, yymp::typelist<IncrementModule>>::value);
+    
 	return 0;
 }

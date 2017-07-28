@@ -18,6 +18,8 @@
 #include <yymp/filter.hpp>          // yymp::filter_duplicates, yymp::indices_where
 #include <yymp/bind.hpp>            // yymp::bind
 #include <yymp/expand.hpp>          // yymp::expand_into
+#include <yymp/group.hpp>           // yymp::group_by
+#include <yymp/transform.hpp>       // yymp::transform
 
 #include <myynt/traits.hpp>     // myynt::is_message_processable
 #include <myynt/emitters.hpp>   // myynt::myynt_RegisterManagerWithEmitter
@@ -139,6 +141,33 @@ namespace myynt {
     template< class Message >
     constexpr Message
     manager<Modules...>::myynt_Process(Message&& message) {
+        using message_value_type = typename std::remove_cv<typename std::remove_reference<Message>::type>::type;
+        
+        using modules = typename yymp::filter<
+            yymp::bind<is_message_processable<message_value_type, yymp::var>>::template generic,
+            distinct_module_types
+        >::type;
+        
+        // unordered
+        using modules_by_category = typename yymp::group_by<
+            yymp::bind<module_process_category<yymp::var, message_value_type>>::template generic,
+            modules
+        >::type;
+        
+        // ordered
+        using ordered_modules_by_category = typename yymp::transform<
+            yymp::bind<reorder_process_group<message_value_type, yymp::var>>::template generic,
+            modules_by_category
+        >::type; // have fun looking at the implementation of this x.x
+        /* as best i can describe it:
+         * for each group, group each type under the representative tag
+         * then transform each tag into the group types in this grouping of subgroups (i.e. use the group as a map)
+         * then expand the resulting typelist through join, as it is a typelist of typelists
+         * then wrap it back as a typelist under the category
+         */
+        
+        
+        
         return myynt_SendToModules(std::forward<Message>(message), get_processable_indices<Message&>());
     }
         

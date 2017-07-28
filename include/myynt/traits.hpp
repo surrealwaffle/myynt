@@ -13,6 +13,10 @@
 #include <utility>		// std::declval
 #include <type_traits> 	// std::void_t, std::false_type, std::true_type, std::conditional
 
+#include <yymp/typelist_fwd.hpp>    // group_suppress
+#include <yymp/bind.hpp>            // yymp::bind
+#include <yymp/group.hpp>           // yymp::group_by, yymp::group, yymp::get_group*
+
 #include <myynt/detail/tags.hpp>
 
 namespace myynt {
@@ -61,20 +65,48 @@ namespace myynt {
     template< class Module, class Message >
     struct module_process_category {
         static constexpr bool is_in_first = tags::belongs_to_category<Module, Message, tags::first>::value;
-        static constexpr bool is_in_intermediate = tags::belongs_to_category<Module, Message, tags::intermediate>::value;
         static constexpr bool is_in_last = tags::belongs_to_category<Module, Message, tags::last>::value;
         
         using type = typename std::conditional<
             is_in_first,
-            tags::first,
+            tags::first,                // Module has a tag in Message::first
             typename std::conditional<
                 is_in_last,
-                tags::last,
-                tags::intermediate
+                tags::last,             // Module has a tag in Message::last
+                yymp::group_suppress    // Module has neither a tag in first or last
             >::type
         >::type;
     };
     
+    template< class Message, class ProcessCategoryGroup >
+    struct make_tagged_subgroups {
+        using message = Message;
+        using category = typename yymp::get_group_key<ProcessCategoryGroup>::type;
+        using modules = typename yymp::get_group_types<ProcessCategoryGroup>::type;
+        using message_tags = typename tags::tags_of_category<message, category>::type;
+
+        using type = typename yymp::group_by<
+            yymp::bind<tags::get_first_representative<yymp::var, message_tags>>::template generic,
+            modules
+        >::type;
+    };
+    
+    template< class Message, class ProcessCategoryGroup >
+    struct reorder_process_group {
+        using message = Message;
+        using category = typename yymp::get_group_key<ProcessCategoryGroup>::type;
+        using message_tags = typename tags::tags_of_category<message, category>::type;
+        
+        using tagged_subgroups = typename make_tagged_subgroups<Message, ProcessCategoryGroup>::type;
+        using reordered_modules = typename yymp::expand<
+            yymp::join,
+            typename yymp::transform<
+                yymp::bind<yymp::get_group<yymp::var, tagged_subgroups>>::template generic,
+                message_tags
+            >::type
+        >::type;
+        using type = yymp::group<category, reordered_modules>;
+    };
 }
 
 #endif // MYYNT__TRAITS_HPP
