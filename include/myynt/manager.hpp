@@ -15,11 +15,13 @@
 #include <type_traits>  // std::enable_if, std::is_constructible, std::is_
 
 #include <yymp/typelist_fwd.hpp>    // yymp::typelist, yymp::size
-#include <yymp/filter.hpp>          // yymp::filter_duplicates, yymp::indices_where
+#include <yymp/filter.hpp>          // yymp::filter_duplicates, yymp::indices_where, yymp::indices_within
 #include <yymp/bind.hpp>            // yymp::bind
 #include <yymp/expand.hpp>          // yymp::expand_into
 #include <yymp/group.hpp>           // yymp::group_by
 #include <yymp/transform.hpp>       // yymp::transform
+#include <yymp/setops.hpp>          // yymp::difference
+#include <yymp/conversions.hpp>    
 
 #include <myynt/traits.hpp>     // myynt::is_message_processable
 #include <myynt/emitters.hpp>   // myynt::myynt_RegisterManagerWithEmitter
@@ -144,7 +146,7 @@ namespace myynt {
         using message_value_type = typename std::remove_cv<typename std::remove_reference<Message>::type>::type;
         
         using modules = typename yymp::filter<
-            yymp::bind<is_message_processable<message_value_type, yymp::var>>::template generic,
+            yymp::bind<is_message_processable<message_value_type&, yymp::var>>::template generic,
             distinct_module_types
         >::type;
         
@@ -160,15 +162,36 @@ namespace myynt {
             modules_by_category
         >::type; // have fun looking at the implementation of this x.x
         /* as best i can describe it:
-         * for each group, group each type under the representative tag
+         * for each group, group each type under the representative tag (tags::tags_of_category filters duplicates for you)
          * then transform each tag into the group types in this grouping of subgroups (i.e. use the group as a map)
          * then expand the resulting typelist through join, as it is a typelist of typelists
          * then wrap it back as a typelist under the category
          */
         
+        using first_modules = typename yymp::get_group<tags::first, ordered_modules_by_category>::type;
+        using last_modules = typename yymp::get_group<tags::last, ordered_modules_by_category>::type;
+        using intermediate_modules = typename yymp::difference<
+            modules,
+            typename yymp::join<first_modules, last_modules>::type
+        >::type;
         
+        using first_indices = typename yymp::indices_within<module_types, first_modules>::type;
+        using last_indices = typename yymp::indices_within<module_types, last_modules>::type;
+        using intermediate_indices = typename yymp::indices_within<module_types, intermediate_modules>::type;
         
-        return myynt_SendToModules(std::forward<Message>(message), get_processable_indices<Message&>());
+        using indices = typename yymp::typelist_to_integer_sequence<
+            typename yymp::expand<
+                yymp::join,
+                yymp::typelist<
+                    typename yymp::integer_sequence_to_typelist<first_indices>::type,
+                    typename yymp::integer_sequence_to_typelist<intermediate_indices>::type,
+                    typename yymp::integer_sequence_to_typelist<last_indices>::type
+                >
+            >::type,
+            std::size_t
+        >::type;
+        
+        return myynt_SendToModules(std::forward<Message>(message), indices{});
     }
         
     template< class... Modules >

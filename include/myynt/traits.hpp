@@ -107,6 +107,7 @@ namespace myynt {
         >::type;
         using type = yymp::group<category, reordered_modules>;
     };
+    
 }
 
 #endif // MYYNT__TRAITS_HPP

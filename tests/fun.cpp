@@ -49,7 +49,8 @@ int main() {
 	
 	manager m{IncrementModule{}, PrintModule{}, NoProcessModule{5}, IncrementModule{}, PrintModule{}};
     //manager m{IncrementModule{}};
-	m.myynt_Process(custom_message{"foo"});
+	m.myynt_Process(custom_message{"bar"});
+	m.myynt_Process(5);
     
     static_assert(std::is_same<typename myynt::tags::tags_of<IncrementModule>::type, yymp::typelist<IncrementModule>>::value);
     
