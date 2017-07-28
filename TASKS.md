@@ -39,8 +39,8 @@ When a parent module passes a message down to its submodules, it does so in the 
 A tag is a generic description for the service that a module performs.
 A message type may optionally define two nested types `first` and `last` that provide a list of tags of modules that must process this message first and last.
 
-- [ ] Change the managers to emit down to modules that have a tag in the message's `first` nested type, if it exists, first
-- [ ] Change the managers to emit down to modules that have a tag in the message's `last` nested type, if it exists, last
+- [x] Change the managers to emit down to modules that have a tag in the message's `first` nested type, if it exists, first
+- [x] Change the managers to emit down to modules that have a tag in the message's `last` nested type, if it exists, last
 
 # Extensions
 More features may be added here as I come across them.
