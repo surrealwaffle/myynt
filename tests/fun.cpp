@@ -36,10 +36,18 @@ template< class Manager >
 struct NoProcessModule {
     NoProcessModule() = delete;
     
-    explicit NoProcessModule(int) { }
+    // should not be used in below code 
+    NoProcessModule(NoProcessModule const&) { std ::cout << "NoProcessModule(NoProcessModule const&)" << std::endl; }
+    
+    // should not be used in below code
+    NoProcessModule(NoProcessModule&&) { std ::cout << "NoProcessModule(NoProcessModule&&)" << std::endl; }
+    
+    // should be used in below code
+    explicit NoProcessModule(int&&) { std::cout << "NoProcessModule(int&&)" << std::endl; }
+    
+    // should be used in below code
+    explicit NoProcessModule(int const&) { std::cout << "NoProcessModule(int const&)" << std::endl;}
 };
-
-
 
 int main() {
 	using namespace myynt;
