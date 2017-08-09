@@ -43,12 +43,12 @@ struct NoProcessModule {
 
 int main() {
 	using namespace myynt;
+    
+    auto u = complete<NoProcessModule>(5);
 	
-	manager m{IncrementModule{}, PrintModule{}, myynt::complete<NoProcessModule>(5), IncrementModule{}, PrintModule{}};
+	manager m{IncrementModule{}, PrintModule{}, u, IncrementModule{}, complete<NoProcessModule>(6), PrintModule{}};
 	m.myynt_Process(custom_message{"bar"});
 	m.myynt_Process(5);
-    
-    //NoProcessModule<PrintModule> m = myynt::complete<NoProcessModule>(5);
     
     static_assert(std::is_same<typename myynt::tags::tags_of<IncrementModule>::type, yymp::typelist<IncrementModule>>::value);
     

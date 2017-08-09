@@ -49,17 +49,11 @@ namespace myynt {
          */
         template< class Manager, class... Modules >
         class premanager {
-            using module_types = typename yymp::typelist<Modules...>;
+            using module_types = typename yymp::typelist<Modules...>; ///< A `yymp::typelist` containing the pack \a Modules.
             
-            using distinct_module_types = typename yymp::filter_duplicates<module_types>::type;
+            using distinct_module_types = typename yymp::filter_duplicates<module_types>::type; ///< A `yymp::typelist` of the distinct types in \a Modules.
             
-            using modules_container_type = typename yymp::expand_into<std::tuple, module_types>::type;
-            
-            /** \brief The modules themselves. */
-            modules_container_type modules_;
-            
-            template< class PossiblyCompleteRequest >
-            using complete_with_this_manager = typename make_complete<premanager, PossiblyCompleteRequest>::type;
+            using modules_container_type = typename yymp::expand_into<std::tuple, module_types>::type; ///< The container that holds the modules.
         public:
             premanager()                    = delete; ///< Available only if each module is default constructible.
             premanager(premanager const&)   = delete; ///< \todo make optionally available
@@ -73,9 +67,9 @@ namespace myynt {
              * This constructor is enabled if and only if all \a Modules are default constructible.
              */
             template<
-                bool B = std::is_default_constructible<decltype(modules_)>::value,
+                bool B = std::is_default_constructible<modules_container_type>::value,
                 class = typename std::enable_if<B>::type
-            > explicit constexpr premanager() noexcept(std::is_nothrow_default_constructible<decltype(modules_)>::value)
+            > explicit constexpr premanager() noexcept(std::is_nothrow_default_constructible<modules_container_type>::value)
                 : modules_() {
                 myynt_RegisterAsManager();
             }
@@ -110,6 +104,9 @@ namespace myynt {
             myynt_Process(Message&& message);
             
         private:
+            /** \brief Container for the modules. */
+            modules_container_type modules_;
+            
             /** \brief Sends \a message down to the submodules selected by the supplied index sequence under the premanager, by lvalue reference.
              *
              * If this function is passed an lvalue, then this function returns an lvalue reference.
@@ -129,7 +126,7 @@ namespace myynt {
             /** \brief Registers the inheriting manager with the submodule emitters. */
             constexpr void
             myynt_RegisterAsManager() noexcept {
-                myynt_RegisterAsManager(std::make_index_sequence<yymp::size<module_types>::value>());
+                myynt_RegisterAsManager(std::make_index_sequence<sizeof...(Modules)>());
             }
             
         };
@@ -163,16 +160,16 @@ namespace myynt {
              * then wrap it back as a typelist under the category
              */
             
-            using first_modules = typename yymp::get_group<tags::first, ordered_modules_by_category>::type;
-            using last_modules = typename yymp::get_group<tags::last, ordered_modules_by_category>::type;
-            using intermediate_modules = typename yymp::difference<
+            using first_modules         = typename yymp::get_group<tags::first, ordered_modules_by_category>::type;
+            using last_modules          = typename yymp::get_group<tags::last, ordered_modules_by_category>::type;
+            using intermediate_modules  = typename yymp::difference<
                 modules,
                 typename yymp::join<first_modules, last_modules>::type
             >::type;
             
-            using first_indices = typename yymp::indices_within<module_types, first_modules>::type;
-            using last_indices = typename yymp::indices_within<module_types, last_modules>::type;
-            using intermediate_indices = typename yymp::indices_within<module_types, intermediate_modules>::type;
+            using first_indices         = typename yymp::indices_within<module_types, first_modules>::type;
+            using last_indices          = typename yymp::indices_within<module_types, last_modules>::type;
+            using intermediate_indices  = typename yymp::indices_within<module_types, intermediate_modules>::type;
             
             using indices = typename yymp::typelist_to_integer_sequence<
                 typename yymp::expand<

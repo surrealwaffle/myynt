@@ -34,9 +34,22 @@ namespace myynt {
     constexpr complete_type<ModuleTemplate, CArgs...> complete(CArgs&&... constructor_args)
         noexcept(std::is_nothrow_constructible<complete_type<ModuleTemplate, CArgs...>, CArgs...>::value);
     
+    namespace detail {
+        template< class T >
+        struct add_const_to_reference { using type = T const; };
+        
+        template< class T >
+        struct add_const_to_reference<T&> { using type = T const&; };
+        
+        template< class T >
+        struct add_const_to_reference<T&&> { using type = T const&&; };
+    }
+    
     template< template<class...> class ModuleTemplate, class... CArgs >
     struct complete_type {
         using container = std::tuple<CArgs...>;
+        
+        container constructor_arguments;
         
         complete_type() = delete;
         complete_type(complete_type const&) = delete;
@@ -49,20 +62,38 @@ namespace myynt {
             : constructor_arguments(std::forward<CArgs>(args)...) { }
         
         template<class Manager, std::size_t... I>
-        constexpr ModuleTemplate<Manager> move_construct_to(std::index_sequence<I...>) 
-            noexcept(std::is_nothrow_constructible<ModuleTemplate<Manager>, CArgs...>::value) {
+        constexpr ModuleTemplate<Manager> copy_construct_to(std::index_sequence<I...>) const {
+            return ModuleTemplate<Manager>{std::get<I>(constructor_arguments)...};
+        }
+        
+        template<class Manager, std::size_t... I>
+        constexpr ModuleTemplate<Manager> move_construct_to(std::index_sequence<I...>) && {
             return ModuleTemplate<Manager>{std::forward<CArgs>(std::get<I>(constructor_arguments))...};
         }
         
         template<
             class Manager,
-            typename = typename std::enable_if<std::is_constructible<ModuleTemplate<Manager>, CArgs...>::value>::type
-        > constexpr operator ModuleTemplate<Manager>() 
-            noexcept(std::is_nothrow_constructible<ModuleTemplate<Manager>, CArgs...>::value) {
-            return move_construct_to<Manager>(std::make_index_sequence<sizeof...(CArgs)>());
+            typename = typename std::enable_if<
+                std::is_constructible<
+                    ModuleTemplate<Manager>,
+                    typename detail::add_const_to_reference<CArgs>::type...
+                >::value
+            >::type
+        > constexpr operator ModuleTemplate<Manager>() const& {
+            return copy_construct_to<Manager>(std::make_index_sequence<sizeof...(CArgs)>());
         }
         
-        container constructor_arguments;
+        template<
+            class Manager,
+            typename = typename std::enable_if<
+                std::is_constructible<
+                    ModuleTemplate<Manager>,
+                    CArgs...
+                >::value
+            >::type
+        > constexpr operator ModuleTemplate<Manager>() && {
+            return reinterpret_cast<complete_type&&>(*this).template move_construct_to<Manager>(std::make_index_sequence<sizeof...(CArgs)>());
+        }
     };
     
     template< template<class...> class ModuleTemplate, class... CArgs >
@@ -80,21 +111,7 @@ namespace myynt {
     struct make_complete<Manager, complete_type<ModuleTemplate, CArgs...>> {
         using type = ModuleTemplate<Manager>;
     };
-    
-    /*
-    namespace detail {
-        template< class Manager, class TypeToComplete >
-        constexpr TypeToComplete&& forward_complete(TypeToComplete&& c) noexcept {
-            return std::forward<TypeToComplete>(c);
-        }
-        
-        template< class Manager, template<class...> class ModuleTemplate, class... CArgs >
-        constexpr ModuleTemplate<Manager> forward_complete(complete_type<ModuleTemplate, CArgs...> const& c)
-            noexcept(std::is_nothrow_constructible<ModuleTemplate<Manager>, CArgs...>::value) {
-            
-        }
-    }
-    */
+
 }
 
 #endif // MYYNT__COMPLETE_HPP

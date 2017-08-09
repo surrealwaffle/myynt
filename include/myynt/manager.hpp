@@ -30,7 +30,7 @@ namespace myynt {
     };
     
     template< class... Modules >
-    manager(Modules...) -> manager<Modules...>;
+    manager(Modules&&...) -> manager<typename std::decay<Modules>::type...>;
     
 }
 
