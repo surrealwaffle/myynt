@@ -36,10 +36,10 @@ template< class Manager >
 struct NoProcessModule {
     NoProcessModule() = delete;
     
-    // should not be used in below code 
+    // should not be used in below code, except when m2 is instantiated
     NoProcessModule(NoProcessModule const&) { std ::cout << "NoProcessModule(NoProcessModule const&)" << std::endl; }
     
-    // should not be used in below code
+    // should not be used in below code,  except when m2 is instantiated
     NoProcessModule(NoProcessModule&&) { std ::cout << "NoProcessModule(NoProcessModule&&)" << std::endl; }
     
     // should be used in below code
@@ -57,6 +57,10 @@ int main() {
 	manager m{IncrementModule{}, PrintModule{}, u, IncrementModule{}, complete<NoProcessModule>(6), PrintModule{}};
 	m.myynt_Process(custom_message{"bar"});
 	m.myynt_Process(5);
+    
+    std::cout << "m2 copied from m" << std::endl;
+    auto m2 = m;
+    m2.myynt_Process(custom_message{"bar2"});
     
     static_assert(std::is_same<typename myynt::tags::tags_of<IncrementModule>::type, yymp::typelist<IncrementModule>>::value);
     
