@@ -43,9 +43,11 @@ A message type may optionally define two nested types `first` and `last` that pr
 - [x] Change the managers to emit down to modules that have a tag in the message's `last` nested type, if it exists, last
 
 # Extensions
+`package` and `isolated_package` are pending.
+They require far more effort than I can muster at the moment.
 
 - [x] Move manager.hpp to premanager.hpp, rename class accordingly and remove `myynt_Emit` method
 - [x] Reintroduce `manager`, inheriting from `premanager`
-- [ ] Create `complete`, which takes a template module and supplies it the manager type during premanager instantiation
+- [x] Create `complete`, which takes a template module and supplies it the manager type during premanager instantiation
 - [ ] Create `package`, which a manager expands its type parameters into its modules
 - [ ] Create `isolated_package`, which acts similarly to `package`, except that messages passed through must be escaped in order to pass on to the manager
