@@ -24,10 +24,13 @@ namespace myynt {
     template< class Manager, class TypeToComplete >
     struct make_complete;
     
-    /** \brief Creates a \ref myynt::complete_type for \a ModuleTemplate with the supplied \a CArgs as constructor arguments. */
+    /** \brief Creates a \ref myynt::complete_type for \a ModuleTemplate with the supplied \a CArgs as constructor arguments. 
+     *
+     * Because template class parameter deduction cannot be partial,  
+     */
     template< template<class...> class ModuleTemplate, class... CArgs >
     constexpr complete_type<ModuleTemplate, CArgs...> complete(CArgs&&... constructor_args)
-        noexcept(std::is_nothrow_constructible<complete_type<ModuleTemplate, CArgs...>, CArgs...>::value)
+        noexcept(std::is_nothrow_constructible<complete_type<ModuleTemplate, CArgs...>, CArgs...>::value);
     
     template< template<class...> class ModuleTemplate, class... CArgs >
     struct complete_type {
