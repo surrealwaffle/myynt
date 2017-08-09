@@ -25,6 +25,7 @@
 
 #include <myynt/traits.hpp>     // myynt::is_message_processable
 #include <myynt/emitters.hpp>   // myynt::myynt_RegisterManagerWithEmitter
+#include <myynt/complete.hpp>   // myynt::make_complete
 
 namespace myynt {
     
@@ -37,7 +38,10 @@ namespace myynt {
 
     template< class Manager, class... Modules >
     class premanager {
-        using module_types = yymp::typelist<Modules...>;
+        using module_types = typename yymp::transform<
+            yymp::bind<make_complete<Manager, yymp::var>>::template generic,
+            yymp::typelist<Modules...>
+        >::type;
         
         using distinct_module_types = typename yymp::filter_duplicates<module_types>::type;
         
@@ -45,6 +49,9 @@ namespace myynt {
         
         /** \brief The modules themselves. */
         modules_container_type modules_;
+        
+        template< class PossiblyCompleteRequest >
+        using complete_with_this_manager = typename make_complete<premanager, PossiblyCompleteRequest>::type;
     public:
         premanager()                    = delete; ///< Available only if each module is default constructible.
         premanager(premanager const&)   = delete; ///< \todo make optionally available
@@ -77,7 +84,7 @@ namespace myynt {
             class = typename std::enable_if<
                 sizeof...(UTypes) >= 1 &&
                 sizeof...(UTypes) == sizeof...(Modules) &&
-                (std::is_constructible<Modules, UTypes&&>::value && ...)    
+                (std::is_constructible<complete_with_this_manager<Modules>, UTypes&&>::value && ...)    
             >::type
         > explicit constexpr premanager(UTypes&&... modules) : modules_(std::forward<UTypes>(modules)...) {
             myynt_RegisterAsManager();

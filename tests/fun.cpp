@@ -32,6 +32,7 @@ struct PrintModule {
     }
 };
 
+template< class Manager >
 struct NoProcessModule {
     NoProcessModule() = delete;
     
@@ -43,14 +44,12 @@ struct NoProcessModule {
 int main() {
 	using namespace myynt;
 	
-	static_assert(is_message_processable<int&, IncrementModule>());
-	static_assert(!is_message_processable<void*&, IncrementModule>());
-    static_assert(!is_message_processable<int&, NoProcessModule>());
-	
-	manager m{IncrementModule{}, PrintModule{}, NoProcessModule{5}, IncrementModule{}, PrintModule{}};
-    //manager m{IncrementModule{}};
+    /** \todo test complete properly, also make sure it works with classes that have explicit constructors (it does not at the moment, depends on implicit conversion) */
+	manager m{IncrementModule{}, PrintModule{}, myynt::complete<NoProcessModule>(5), IncrementModule{}, PrintModule{}};
 	m.myynt_Process(custom_message{"bar"});
 	m.myynt_Process(5);
+    
+    //NoProcessModule<PrintModule> m = myynt::complete<NoProcessModule>(5);
     
     static_assert(std::is_same<typename myynt::tags::tags_of<IncrementModule>::type, yymp::typelist<IncrementModule>>::value);
     
