@@ -12,11 +12,22 @@
 
 namespace myynt {
     
+    /** \brief The type used to indicate to \ref myynt::premanager that the module needs to be completed with the manager type.
+     *
+     * \tparam ModuleTemplate The module class template.
+     * \tparam CArgs The argument types to construct the module with.
+     */
     template< template<class...> class ModuleTemplate, class... CArgs >
     struct complete_type;
     
+    /** \brief If \a TypeToComplete is an instance of \ref complete_type, fills in the template argument with \a Manager, otherwise the result is \a TypeToComplete. */
     template< class Manager, class TypeToComplete >
     struct make_complete;
+    
+    /** \brief Creates a \ref myynt::complete_type for \a ModuleTemplate with the supplied \a CArgs as constructor arguments. */
+    template< template<class...> class ModuleTemplate, class... CArgs >
+    constexpr complete_type<ModuleTemplate, CArgs...> complete(CArgs&&... constructor_args)
+        noexcept(std::is_nothrow_constructible<complete_type<ModuleTemplate, CArgs...>, CArgs...>::value)
     
     template< template<class...> class ModuleTemplate, class... CArgs >
     struct complete_type {
