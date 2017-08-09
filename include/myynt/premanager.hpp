@@ -77,7 +77,7 @@ namespace myynt {
          * This constructor is enabled if and only if all of the following are true:
          *  * `sizeof...(UTypes) >= 1`
          *  * `sizeof...(UTypes) == sizeof...(Modules)`
-         *  * `std::is_constructible<Modules, U&&>` is \c true for each type `U` in the pack `UTypes`
+         *  * `std::is_constructible<complete_with_this_manager<Modules>, U&&>` is \c true for each type `U` in the pack `UTypes`
          */
         template<
             class... UTypes, 
