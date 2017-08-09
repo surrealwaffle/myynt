@@ -80,10 +80,12 @@ namespace myynt {
             
             constexpr premanager_registrar& operator=(premanager_registrar const&) noexcept {
                 static_cast<Premanager*>(this)->myynt_RegisterAsManager();
+                return *this;
             }
             
             constexpr premanager_registrar& operator=(premanager_registrar&&) noexcept {
                 static_cast<Premanager*>(this)->myynt_RegisterAsManager();
+                return *this;
             }
         };
         
