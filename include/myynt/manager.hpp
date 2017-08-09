@@ -15,6 +15,7 @@ namespace myynt {
     public:
         using premanager<manager<Modules...>, Modules...>::premanager;
         using premanager<manager<Modules...>, Modules...>::myynt_Process;
+        using premanager<manager<Modules...>, Modules...>::operator=;
         
         /** \brief Sends \a message as an *lvalue reference* to the managed submodules.
          *
