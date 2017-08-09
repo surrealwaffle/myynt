@@ -81,6 +81,20 @@ namespace myynt {
         using type = ModuleTemplate<Manager>;
     };
     
+    /*
+    namespace detail {
+        template< class Manager, class TypeToComplete >
+        constexpr TypeToComplete&& forward_complete(TypeToComplete&& c) noexcept {
+            return std::forward<TypeToComplete>(c);
+        }
+        
+        template< class Manager, template<class...> class ModuleTemplate, class... CArgs >
+        constexpr ModuleTemplate<Manager> forward_complete(complete_type<ModuleTemplate, CArgs...> const& c)
+            noexcept(std::is_nothrow_constructible<ModuleTemplate<Manager>, CArgs...>::value) {
+            
+        }
+    }
+    */
 }
 
 #endif // MYYNT__COMPLETE_HPP
