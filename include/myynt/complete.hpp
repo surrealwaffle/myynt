@@ -14,6 +14,8 @@ namespace myynt {
     
     /** \brief The type used to indicate to \ref myynt::premanager that the module needs to be completed with the manager type.
      *
+     * Because template class parameter deduction cannot be partial, it is recommended to construct `complete_type`s through \ref myynt::complete.
+     *
      * \tparam ModuleTemplate The module class template.
      * \tparam CArgs The argument types to construct the module with.
      */
@@ -26,7 +28,7 @@ namespace myynt {
     
     /** \brief Creates a \ref myynt::complete_type for \a ModuleTemplate with the supplied \a CArgs as constructor arguments. 
      *
-     * Because template class parameter deduction cannot be partial,  
+     * Because template class parameter deduction cannot be partial, it is recommended to construct `complete_type`s through this function.
      */
     template< template<class...> class ModuleTemplate, class... CArgs >
     constexpr complete_type<ModuleTemplate, CArgs...> complete(CArgs&&... constructor_args)
