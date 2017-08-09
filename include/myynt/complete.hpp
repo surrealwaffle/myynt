@@ -12,13 +12,13 @@
 
 namespace myynt {
     
-    template< template<class> class ModuleTemplate, class... CArgs >
+    template< template<class...> class ModuleTemplate, class... CArgs >
     struct complete_type;
     
     template< class Manager, class TypeToComplete >
     struct make_complete;
     
-    template< template<class> class ModuleTemplate, class... CArgs >
+    template< template<class...> class ModuleTemplate, class... CArgs >
     struct complete_type {
         using container = std::tuple<CArgs...>;
         
@@ -49,7 +49,7 @@ namespace myynt {
         container constructor_arguments;
     };
     
-    template< template<class> class ModuleTemplate, class... CArgs >
+    template< template<class...> class ModuleTemplate, class... CArgs >
     constexpr complete_type<ModuleTemplate, CArgs...> complete(CArgs&&... constructor_args)
         noexcept(std::is_nothrow_constructible<complete_type<ModuleTemplate, CArgs...>, CArgs...>::value) {
         return {std::forward<CArgs>(constructor_args)...};
@@ -60,7 +60,7 @@ namespace myynt {
         using type = T;
     };
     
-    template< class Manager, template<class> class ModuleTemplate, class... CArgs >
+    template< class Manager, template<class...> class ModuleTemplate, class... CArgs >
     struct make_complete<Manager, complete_type<ModuleTemplate, CArgs...>> {
         using type = ModuleTemplate<Manager>;
     };
