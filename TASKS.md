@@ -48,6 +48,6 @@ They require far more effort than I can muster at the moment.
 
 - [x] Move manager.hpp to premanager.hpp, rename class accordingly and remove `myynt_Emit` method
 - [x] Reintroduce `manager`, inheriting from `premanager`
-- [x] Create `complete`, which takes a template module and supplies it the manager type during premanager instantiation
+- [x] Create `complete`, which takes a module template and supplies it the manager type during premanager instantiation
 - [ ] Create `package`, which a manager expands its type parameters into its modules
 - [ ] Create `isolated_package`, which acts similarly to `package`, except that messages passed through must be escaped in order to pass on to the manager
