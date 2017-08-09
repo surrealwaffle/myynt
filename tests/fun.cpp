@@ -36,7 +36,7 @@ template< class Manager >
 struct NoProcessModule {
     NoProcessModule() = delete;
     
-    NoProcessModule(int) { }
+    explicit NoProcessModule(int) { }
 };
 
 
@@ -44,7 +44,6 @@ struct NoProcessModule {
 int main() {
 	using namespace myynt;
 	
-    /** \todo test complete properly, also make sure it works with classes that have explicit constructors (it does not at the moment, depends on implicit conversion) */
 	manager m{IncrementModule{}, PrintModule{}, myynt::complete<NoProcessModule>(5), IncrementModule{}, PrintModule{}};
 	m.myynt_Process(custom_message{"bar"});
 	m.myynt_Process(5);
