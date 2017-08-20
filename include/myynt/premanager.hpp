@@ -26,12 +26,21 @@
 #include <myynt/traits.hpp>     // myynt::is_message_processable
 #include <myynt/emitters.hpp>   // myynt::myynt_RegisterManagerWithEmitter
 #include <myynt/complete.hpp>   // myynt::make_complete
+#include <myynt/package.hpp>    // myynt::unpack_packages, myynt::unpack_modules    
 
 namespace myynt {
     
     namespace impl {
         template< class Manager, class... Modules >
         struct premanager;
+        
+        template< class Manager, class TypeList >
+        struct premanager_completer;
+        
+        template< class Manager, class... Modules >
+        struct premanager_completer<Manager, yymp::typelist<Modules...>> {
+            using type = premanager<Manager, typename make_complete<Manager, Modules>::type...>;
+        };
     }
     
     /** \brief Provides manager implementations the `myynt_Process` method, which emits a message down into its submodules. 
@@ -40,11 +49,16 @@ namespace myynt {
      * The implementation of the premanager functionality is left to \ref myynt::impl::premanager.
      */
     template< class Manager, class... Modules >
-    using premanager = impl::premanager<Manager, typename make_complete<Manager, Modules>::type...>;
+    using premanager = impl::premanager_completer<
+        Manager,
+        typename unpack_modules<Modules...>::type
+    >::type;
 
     namespace impl {
         template< class... Modules >
         struct premanager_modules_container {
+            container_type modules;
+            
             premanager_modules_container() = default;
             premanager_modules_container(premanager_modules_container const&) = default;
             premanager_modules_container(premanager_modules_container&&) = default;
@@ -59,9 +73,21 @@ namespace myynt {
                     sizeof...(UTypes) == sizeof...(Modules) &&
                     (std::is_constructible<Modules, UTypes&&>::value && ...)    
                 >::type
-            > constexpr premanager_modules_container(UTypes&&... args) : modules(std::forward<UTypes>(args)...) { }
+            > explicit constexpr premanager_modules_container(UTypes&&... args) : modules(std::forward<UTypes>(args)...) { }
             
-            std::tuple<Modules...> modules;
+            template<
+                class... UTypes,
+                class = typename std::enable_if<
+                    std::is_constructible<decltype(modules), std::tuple<UTypes>>::value
+                >::type
+            > explicit constexpr premanager_modules_container(std::tuple<UTypes>&& other) : modules(std::move(other)) { }
+            
+            template<
+                class... UTypes,
+                class = typename std::enable_if<
+                    std::is_constructible<decltype(modules), std::tuple<UTypes> const&>::value
+                >::type
+            > explicit constexpr premanager_modules_container(std::tuple<UTypes> const& other) : modules(other) { }
         };
         
         template< class Premanager >
@@ -101,7 +127,9 @@ namespace myynt {
             
             using distinct_module_types = typename yymp::filter_duplicates<module_types>::type; ///< A `yymp::typelist` of the distinct types in \a Modules.
             
-            using modules_container_type = typename yymp::expand_into<std::tuple, module_types>::type; ///< The container that holds the modules.
+            using container_type = premanager_modules_container<Modules...>;
+            
+            struct packaged_construct { };
         public:
             premanager()                    = default; ///< Available if each module is default constructible.
             premanager(premanager const&)   = default; ///< Available if each module is copy constructible.
@@ -141,9 +169,16 @@ namespace myynt {
             myynt_Process(Message&& message);
             
         private:
+            template<
+                class Package,
+                class = typename std::enable_if<
+                    std::is_constructible<container_type, Package>::value
+                >::type
+            > explicit constexpr premanager(packaged_construct, Package&& package)
+                : premanager_modules_container<Modules...>(std::forward<Package>(package)) { }
+            
             /** \brief Container for the modules. */
             using premanager_modules_container<Modules...>::modules;
-            //modules_container_type modules_;
             
             /** \brief Sends \a message down to the submodules selected by the supplied index sequence under the premanager, by lvalue reference.
              *
