@@ -51,9 +51,9 @@ namespace myynt {
         
         container constructor_arguments;
         
-        complete_type() = delete;
-        complete_type(complete_type const&) = delete;
-        complete_type(complete_type&&) = delete;
+        complete_type() = default;
+        complete_type(complete_type const&) = default;
+        complete_type(complete_type&&) = default;
         
         complete_type& operator=(complete_type const&) = delete;
         complete_type& operator=(complete_type&&) = delete;

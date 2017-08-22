@@ -36,10 +36,10 @@ template< class Manager >
 struct NoProcessModule {
     NoProcessModule() = delete;
     
-    // should not be used in below code, except when m2 is instantiated/assigned
+    // should not be used in below code, except when m2 is copy constructed/assigned
     NoProcessModule(NoProcessModule const&) { std ::cout << "NoProcessModule(NoProcessModule const&)" << std::endl; }
     
-    // should not be used in below code,  except when m2 is instantiated/assigned
+    // should not be used in below code,  except when m3 is move constructed/assigned
     NoProcessModule(NoProcessModule&&) { std ::cout << "NoProcessModule(NoProcessModule&&)" << std::endl; }
     
     // should be used in below code
@@ -55,8 +55,12 @@ int main() {
 	using namespace myynt;
     
     auto u = complete<NoProcessModule>(5);
-	
-	manager m{IncrementModule{}, PrintModule{}, u, IncrementModule{}, complete<NoProcessModule>(6), PrintModule{}};
+    package p = {IncrementModule{}, package{PrintModule{}}, u, IncrementModule{}};
+    package p2(complete<NoProcessModule>(6), PrintModule{});
+    
+    std::cout << "start" << std::endl;
+    manager m{p, package{complete<NoProcessModule>(6), PrintModule{}}};
+	//manager m{IncrementModule{}, PrintModule{}, u, IncrementModule{}, complete<NoProcessModule>(6), PrintModule{}};
 	m.myynt_Process(custom_message{"bar"});
 	m.myynt_Process(5);
     
@@ -64,10 +68,10 @@ int main() {
     auto m2 = m;
     m2.myynt_Process(custom_message{"bar2"});
     
-    m2 = m;
-    m2 = std::move(m);
+    std::cout << "m3 moved from m2" << std::endl;
+    [[maybe_unused]] auto m3 = std::move(m);
     
     static_assert(std::is_same<typename myynt::tags::tags_of<IncrementModule>::type, yymp::typelist<IncrementModule>>::value);
-    
+
 	return 0;
 }

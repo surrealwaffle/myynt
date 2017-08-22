@@ -49,15 +49,16 @@ namespace myynt {
      * The implementation of the premanager functionality is left to \ref myynt::impl::premanager.
      */
     template< class Manager, class... Modules >
-    using premanager = impl::premanager_completer<
+    using premanager = typename impl::premanager_completer<
         Manager,
         typename unpack_modules<Modules...>::type
     >::type;
 
     namespace impl {
+        /** \brief Module container for premanagers. */
         template< class... Modules >
         struct premanager_modules_container {
-            container_type modules;
+            std::tuple<Modules...> modules;
             
             premanager_modules_container() = default;
             premanager_modules_container(premanager_modules_container const&) = default;
@@ -66,30 +67,19 @@ namespace myynt {
             premanager_modules_container& operator=(premanager_modules_container const&) = default;
             premanager_modules_container& operator=(premanager_modules_container&&) = default;
             
+            /** \brief Unpackages \a args and uses the result to construct the \a modules. */
             template<
-                class... UTypes, 
+                class... Args,
                 class = typename std::enable_if<
-                    sizeof...(UTypes) >= 1 &&
-                    sizeof...(UTypes) == sizeof...(Modules) &&
-                    (std::is_constructible<Modules, UTypes&&>::value && ...)    
+                    sizeof...(Args) >= 1 &&
+                    std::is_constructible<decltype(modules), decltype(unpack_packages(std::declval<Args>()...))>::value
                 >::type
-            > explicit constexpr premanager_modules_container(UTypes&&... args) : modules(std::forward<UTypes>(args)...) { }
-            
-            template<
-                class... UTypes,
-                class = typename std::enable_if<
-                    std::is_constructible<decltype(modules), std::tuple<UTypes>>::value
-                >::type
-            > explicit constexpr premanager_modules_container(std::tuple<UTypes>&& other) : modules(std::move(other)) { }
-            
-            template<
-                class... UTypes,
-                class = typename std::enable_if<
-                    std::is_constructible<decltype(modules), std::tuple<UTypes> const&>::value
-                >::type
-            > explicit constexpr premanager_modules_container(std::tuple<UTypes> const& other) : modules(other) { }
+            > explicit constexpr premanager_modules_container(Args&&... args)
+                noexcept(std::is_nothrow_constructible<decltype(modules), decltype(unpack_packages(std::declval<Args>()...))>::value)
+                : modules(unpack_packages(std::forward<Args>(args)...)) { }
         };
         
+        /** \brief Provides post-construction module registration through CRTP. */
         template< class Premanager >
         struct premanager_registrar {
             constexpr premanager_registrar() noexcept {
@@ -128,8 +118,7 @@ namespace myynt {
             using distinct_module_types = typename yymp::filter_duplicates<module_types>::type; ///< A `yymp::typelist` of the distinct types in \a Modules.
             
             using container_type = premanager_modules_container<Modules...>;
-            
-            struct packaged_construct { };
+
         public:
             premanager()                    = default; ///< Available if each module is default constructible.
             premanager(premanager const&)   = default; ///< Available if each module is copy constructible.
@@ -138,24 +127,19 @@ namespace myynt {
             premanager& operator=(premanager const&)    = default; ///< Available if each module is copy assignable.
             premanager& operator=(premanager&&)         = default; ///< Available only if each module is move assignable.
             
-            /** \brief Constructs the premanager's modules_ from \a modules. 
+            /** \brief Constructs the premanager's modules from \a args.
              *
-             * This constructor is enabled if and only if all of the following are true:
-             *  * `sizeof...(UTypes) >= 1`
-             *  * `sizeof...(UTypes) == sizeof...(Modules)`
-             *  * `std::is_constructible<Modules, U&&>` is \c true for each type `U` in the pack `UTypes`
+             * If \a args contains any \ref myynt::package "packages", they are unpacked.
              */
             template<
-                class... UTypes, 
+                class... Args,
                 class = typename std::enable_if<
-                    sizeof...(UTypes) >= 1 &&
-                    sizeof...(UTypes) == sizeof...(Modules) &&
-                    (std::is_constructible<Modules, UTypes&&>::value && ...)    
+                    sizeof...(Args) >= 1 &&
+                    std::is_constructible<container_type, Args...>::value
                 >::type
-            > explicit constexpr premanager(UTypes&&... modules) 
-                : premanager_modules_container<Modules...>(std::forward<UTypes>(modules)...) {
-                // myynt_RegisterAsManager(); // premanager_registrar registers automatically
-            }
+            > explicit constexpr premanager(Args&&... args)
+                noexcept(std::is_nothrow_constructible<container_type, Args...>::value)
+                : container_type(std::forward<Args>(args)...) { }
             
             /** \brief Sends \a message down to the submodules under the premanager, by lvalue reference.
              *
@@ -168,15 +152,7 @@ namespace myynt {
             constexpr Message
             myynt_Process(Message&& message);
             
-        private:
-            template<
-                class Package,
-                class = typename std::enable_if<
-                    std::is_constructible<container_type, Package>::value
-                >::type
-            > explicit constexpr premanager(packaged_construct, Package&& package)
-                : premanager_modules_container<Modules...>(std::forward<Package>(package)) { }
-            
+        private:            
             /** \brief Container for the modules. */
             using premanager_modules_container<Modules...>::modules;
             
@@ -201,7 +177,6 @@ namespace myynt {
             myynt_RegisterAsManager() noexcept {
                 myynt_RegisterAsManager(std::make_index_sequence<sizeof...(Modules)>());
             }
-            
         };
         
         template< class Manager, class... Modules >
