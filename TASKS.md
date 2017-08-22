@@ -3,7 +3,7 @@ The goal of this project is to provide a means of intercommunication between mod
 
 - [x] Modules
 - [x] Emitters
-- [ ] Tags
+- [x] Tags
 
 # Modules
 The exact requirements for a module are very lax (even an instance of the empty class can be used as a module).
